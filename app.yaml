@@ -1,1 +1,7 @@
+name: UNO-Q-GPS
+description: ""
+ports: []
+bricks:
+- arduino:web_ui: {}
+icon: 😀
 
