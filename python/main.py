@@ -34,12 +34,6 @@ def update_gps(lat,long, jour, mois, annee, heure, minute,seconde):
         _state["minute"] = int(minute)
         _state["seconde"] = int(seconde)
 
-#def presence_mm(mm):
-   # with _lock:
-       # _state["last_presence_utc"] = now_utc_iso()
-       # _state["last_presence_mm"] = int(mm)
-    #return True
-
 Bridge.provide("update_gps", update_gps)
 #Bridge.provide("presence_mm", presence_mm)
 
