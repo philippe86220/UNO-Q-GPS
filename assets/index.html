@@ -1,1 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNO Q - GPS</title>
+<style>
+  body { font-family: system-ui, -apple-system, Arial, sans-serif; padding: 16px; }
+  .box { border: 1px solid #ddd; border-radius: 12px; padding: 12px; max-width: 560px; }
+  .row { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px dashed #eee; }
+  .row:last-child { border-bottom: none; }
+  .k { color: #555; }
+  .v { font-weight: 700; }
+</style>
+</head>
+<body>
+  <h2>UNO Q - GPS</h2>
+
+  <div class="box">
+    <div class="row"><span class="k">Date / heure (local)</span><span class="v" id="now">-</span></div>
+    <div class="row"><span class="k">Latitude</span><span class="v" id="lat">-</span></div>
+    <div class="row"><span class="k">Longitude</span><span class="v" id="long">-</span></div>
+    <div class="row"><span class="k">Date (UTC) du récepteur GNSS</span><span class="v" id="date">-</span></div>
+    <div class="row"><span class="k">Heure (UTC) du récepteur GNSS</span><span class="v" id="heure">-</span></div>
+  </div>
+
+<script>
+
+function fmtLocalFromUtcIso(isoUtc) {
+  if (!isoUtc) return "-";
+  const d = new Date(isoUtc);
+  if (isNaN(d.getTime())) return isoUtc; // fallback
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+async function refresh() {
+  try {
+    const r = await fetch("/api/state", { cache: "no-store" });
+    const s = await r.json();
+
+    document.getElementById("now").textContent =
+      fmtLocalFromUtcIso(s.now_utc);
+
+    document.getElementById("lat").textContent =
+      (s.lat == null) ? "-" : (s.lat.toFixed(6) );
+
+    document.getElementById("long").textContent =
+      (s.long == null) ? "-" : (s.long.toFixed(2) );
+
+     // Affichage jour/mois/année depuis les champs Python
+    if (s.jour != null && s.mois != null && s.annee != null) {
+      const jour = s.jour.toString().padStart(2, '0');
+      const mois = s.mois.toString().padStart(2, '0');
+      const annee = s.annee;
+      document.getElementById("date").textContent = `${jour}/${mois}/${annee}`;
+    } else {
+      document.getElementById("date").textContent = "-";
+    }
+
+     // Affichage heure/minute/seconde depuis les champs Python
+    if (s.heure != null && s.minute != null && s.seconde != null) {
+      const heure = s.heure.toString().padStart(2, '0');
+      const minute = s.minute.toString().padStart(2, '0');
+      const seconde = s.seconde.toString().padStart(2, '0');
+      document.getElementById("heure").textContent = `${heure}:${minute}:${seconde}`;
+    } else {
+      document.getElementById("heure").textContent = "-";
+    }
+    
+
+  } catch (e) {
+    // ignore
+  }
+}
+
+refresh();
+setInterval(refresh, 1000);
+</script>
+</body>
+</html>
 
