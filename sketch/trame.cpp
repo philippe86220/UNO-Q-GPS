@@ -157,8 +157,8 @@ uint8_t Trame::mon_strlen(const char *cstring) { // ici pas de size_t (unsigned 
 }
 
 
-// je suis sur 328p : la limite est entre -32768 et 32767,
-//d'autre part la validité des latitudes et longitudes est assurée (valid)
+
+// la validité des latitudes et longitudes est assurée (valid)
 int Trame::monAtoi(const char *s)
 {
   // 1. Ignorer les espaces
