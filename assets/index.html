@@ -22,6 +22,8 @@
     <div class="row"><span class="k">Longitude</span><span class="v" id="long">-</span></div>
     <div class="row"><span class="k">Date (UTC) du récepteur GNSS</span><span class="v" id="date">-</span></div>
     <div class="row"><span class="k">Heure (UTC) du récepteur GNSS</span><span class="v" id="heure">-</span></div>
+    <div class="row"><span class="k">Nombre de satelittes</span><span class="v" id="numsat">-</span></div>
+    <div class="row"><span class="k">Altidude</span><span class="v" id="altitude">-</span></div>
   </div>
 
 <script>
@@ -73,6 +75,12 @@ async function refresh() {
     } else {
       document.getElementById("heure").textContent = "-";
     }
+
+    document.getElementById("numsat").textContent =
+      (s.numsat == null) ? "-" : (s.numsat.toString().padStart(2, '0') );
+
+    document.getElementById("altitude").textContent =
+      (s.altitude == null) ? "-" : (s.altitude.toFixed(2) );
     
 
   } catch (e) {
@@ -85,4 +93,3 @@ setInterval(refresh, 1000);
 </script>
 </body>
 </html>
-
