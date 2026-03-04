@@ -204,8 +204,8 @@ This example demonstrates :
 - 
 It also illustrates how to design applications for the **hybrid architecture of the Arduino UNO-Q.**
 
-UNO-Q-GPS
-[image dashboard]
+## Screenshots
+![Serveur](/docs//screenshot.jpg)
 
 # License
 MIT
