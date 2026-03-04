@@ -36,7 +36,7 @@ void loop() {
   if (getSentence()) gps.setSentence(sentence); 
     
   if (gps.extrait() && gps.estValide()) {
-    Bridge.call("update_gps", gps.latitude, gps.longitude, gps.jour, gps.mois, gps.annee+2000,(gps.heure) % 24, gps.minute, gps.seconde);
+    Bridge.call("update_gps", gps.latitude, gps.longitude, gps.jour, gps.mois, gps.annee+2000,(gps.heure) % 24, gps.minute, gps.seconde, gps.numSat, gps.altitude);
    }
  
 }
