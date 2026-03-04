@@ -209,6 +209,11 @@ It also illustrates how to design applications for the **hybrid architecture of 
 ## Screenshot
 ![Serveur](/doc//screenshot.jpg)
 
+
+## Acknowledgements
+
+Thanks to the open-source community and to AI-assisted tools that helped with documentation structure and language polishing.
+
 # License
 MIT
 
