@@ -1,17 +1,86 @@
 # UNO-Q-GPS
-Application pour lire les Trames d'un capteur GNSS et les afficher sur une page HTML  
-Permet de mettre en évidence l'utilisation de l'UART matériel de l'UNO-Q
 
-## 1. Principe de fonctionnement :
+Example application demonstrating how to read GNSS NMEA frames on the **Arduino UNO-Q**, process them on the MCU using a lightweight C++ parser, transmit the extracted data to the Linux MPU via **Bridge**, and display the information in a **web dashboard**.
 
-- Une librairie permet d'extraire les champs necessaires au bon fonctionnement du programme
-- Bridge transmet les champs de cette façon au MPU :
+This project highlights the **hybrid architecture of the UNO-Q**, combining:
+
+- a real-time MCU
+- a Linux MPU
+- a web interface
+
+---
+
+# Architecture Overview
+
+The GNSS receiver sends NMEA sentences through the hardware UART of the UNO-Q.
+
+The MCU parses these sentences and extracts the useful fields.
+
+The extracted data are sent to the Linux system through **Bridge RPC calls**, where a Python application stores them and exposes them through a **REST API**.
+
+The HTML dashboard retrieves the data from this API and displays them in real time.
 
 ```
-Bridge.call("update_gps", gps.latitude, gps.longitude, gps.jour, gps.mois, gps.annee+2000,(gps.heure) % 24, gps.minute, gps.seconde, gps.numSat, gps.altitude);
+GNSS module
+↓
+MCU (UART + NMEA parser)
+↓
+Bridge RPC
+↓
+Linux MPU (Python)
+↓
+REST API
+↓
+JSON
+↓
+Web Browser Dashboard
+```
+---
+
+# Data Flow
+
+```
+GPS NMEA sentences
+        ↓
+MCU parser (C++ library)
+        ↓
+Bridge.call()
+        ↓
+Python update_gps()
+        ↓
+_state dictionary
+        ↓
+WebUI API (/api/state)
+        ↓
+JSON response
+        ↓
+JavaScript fetch()
+        ↓
+HTML dashboard update
+```
+---
+
+# MCU → Linux Communication
+When a valid GPS fix is detected, the MCU sends the parsed values to the Linux side.
+
+```
+Bridge.call(
+  "update_gps",
+  gps.latitude,
+  gps.longitude,
+  gps.jour,
+  gps.mois,
+  gps.annee + 2000,
+  (gps.heure) % 24,
+  gps.minute,
+  gps.seconde,
+  gps.numSat,
+  gps.altitude
+);
 ```
 
-- Le coeur LINUX récupère ces champs : 
+# Python Application
+The Python application receives these values through the Bridge interface and stores them in a shared dictionary.
 
 ```
 def update_gps(lat,long, jour, mois, annee, heure, minute,seconde, numsat, altitude):
@@ -30,138 +99,115 @@ def update_gps(lat,long, jour, mois, annee, heure, minute,seconde, numsat, altit
 Bridge.provide("update_gps", update_gps)
 ```
 
-## 🔄 Transformation Python → JSON → WebUI
-
-### 1. Le dictionnaire Python `payload`
-
-```python
- payload = {
-            "now_utc": now_utc_iso(),
-            "lat": _state["lat"],
-            "long": _state["long"],
-            "jour": _state["jour"],
-            "mois": _state["mois"],
-            "annee": _state["annee"],
-            "heure": _state["heure"],
-            "minute": _state["minute"],
-            "seconde": _state["seconde"],
-            "numsat": _state["numsat"],
-            "altitude": _state["altitude"],
-        }
-```
-
-`payload`= dictionnaire Python natif (types Python : `str`, `float`, `int`)
-
-### 2. Sérialisation automatique par WebUI
+# REST API
+The WebUI exposes the GPS data through a REST endpoint.
 
 ```
-web.expose_api("GET", "/api/state", api_state)  
+web.expose_api("GET", "/api/state", api_state)
 ```
 
-`WebUI` fait AUTOMATIQUEMENT :
-
-
-```
-payload (dict Python) 
-    ↓ json.dumps() interne
-{"now_utc":"2026-03-03T08:39:00Z","lat":46.123456,...} (JSON string)
-    ↓ HTTP response
-Content-Type: application/json
-
-```
-
-### 3. Flux complet
-
-```
-1. GPS → update_gps() → _state (Python dict)
-2. fetch("/api/state") → api_state() → payload (Python dict) 
-3. WebUI → JSON automatique → HTTP response
-4. JavaScript → r.json() → objet JS
-5. DOM → affichage HTML
-```
-
-### 4. Types : Python → JSON → JavaScript
-
-| Python | JSON    | JavaScript |
-| ------ | ------- | ---------- |
-| str    | "texte" | "texte"    |
-| float  | 36.123  | 36.123     |
-| int    | 3       | 3          |
-| None   | null    | null       |
-
-### 5. Test API
+Example request :
 
 ```
 curl http://localhost/api/state
-# → {"now_utc":"2026-03-03T08:39:00Z","lat":36.123456,...}
 ```
 
-WebUI gère TOUT : sérialisation JSON, headers HTTP, CORS, etc. ✨
-
-
-### Schéma visuel pour README
+Example response :
 
 ```
-graph LR
-    GPS[GPS NMEA] -->|update_gps| State[_state dict]
-    Req[fetch("/api/state")] --> API[api_state()]
-    API --> Payload[payload dict]
-    Payload -->|WebUI auto| JSON["JSON string"]
-    JSON -->|HTTP 200| JS[r.json()]
-    JS --> DOM[HTML DOM]
+{
+ "now_utc":"2026-03-03T08:39:00Z",
+ "lat":36.123456,
+ "long":0.754321,
+ "numsat":10,
+ "altitude":120.3
+}
 ```
 
-Avantage : Zéro code JSON manuel - WebUI s'occupe de tout ! ✅
+WebUI automatically handles :
+- JSON serialization
+- HTTP headers
+- REST endpoint
 
-## 2. Librairie pour parser les TrameNMEA – Décodage minimaliste des trames GPS RMC / GGA / GSA
+# Web Dashboard
+The HTML page periodically fetches the API and updates the interface.
 
-Librairie C++ pour cartes **Arduino AVR et UNO-Q** (ATmega328, Arduino UNO…) permettant  
-d’extraire rapidement les informations clés des phrases NMEA `$GPRMC`,
-`$GPGGA` et `$GPGSA`.
-
-> **Objectif** : fournir un parseur léger 
-> sans dépendance externe, capable de tourner sur un Nano / Uno R3 et UNO-Q.
-
----
-
-## Connexion matérielle
-
-| GPS module pin | UNO-Q pin |
-|----------------|------------|
-| TX (GPS)       |  RX UNO-Q
-| RX (GPS)       |  TX UNO-Q
-| VCC / GND      | 3.3 V / GND |
-
-Assurez‑vous que le module émet en 9600 bauds (valeur par défaut de la plupart
-des récepteurs).
-
-Type de module utilisé pour la mise en oeuvre de la librairie :
-https://www.gotronic.fr/art-module-gps-tel0094-25732.htm
-
-
-## API
-
-| Méthode                       | Effet                                                     |
-| -----------------------------  | -------------------------------------------------------- |
-| `Trame(char* uneTrame)`        | Constructeur (une seule instance recommandée).           |
-| `void setSentence(char* nmea)` | Pointeur vers la nouvelle phrase NMEA.                   |
-| `bool extrait()`               | Identifie et parse ; renvoie `false` si échec.           |
-| `bool estValide() const`       | `true` si `valid == 'A'` **et** `fixQuality > 0`.        |
-| `Type type() const`            | Enum `GPRMC / GPGGA / GPGSA / INCONNU`.                  |
-
-
-## Champs publics mis à jour
-
-- latitude, longitude, vitesse, route
-- jour, mois, annee, heure, minute, seconde
-- fixQuality, numSat, hdop, altitude, geoidSeparation
-- selMode, fixType, satID[12], pdop, hdop_gsa, vdop
-
-## Structure interne
 ```
-buffers statiques  ─┬─ _bufRMC[12][20]
-                    ├─ _bufGGA[14][20]
-                    └─ _bufGSA[17][20]
-
-Trame::extrait()  → détecte type → choisit buffer → découpe → parseRMC/GGA/GSA
+const r = await fetch("/api/state");
+const s = await r.json();
 ```
+
+The dashboard updates every second :  
+
+```
+setInterval(refresh, 1000);
+```
+
+Displayed data include :
+- local time
+- latitude
+- longitude
+- GPS UTC date
+- GPS UTC time
+- number of satellites
+- altitude
+
+# NMEA Parsing Library
+This project includes a lightweight C++ NMEA parser designed for :
+- Arduino AVR boards
+- Arduino UNO-Q
+- low memory environments
+- 
+Supported sentences :
+- $GPRMC
+- $GPGGA
+- $GPGSA
+- 
+The goal of this library is minimal decoding with no external dependencies, suitable for small  
+microcontrollers.
+
+Extracted data include :
+- latitude
+- longitude
+- speed
+- route
+- UTC date/time
+- satellite count
+- altitude
+- HDOP / PDOP / VDOP
+
+# Hardware Connection
+
+| GPS Module | UNO-Q |
+| ---------- | ----- |
+| TX         | RX    |
+| RX         | TX    |
+| VCC        | 3.3V  |
+| GND        | GND   |
+
+Example GPS module used :
+
+https://www.gotronic.fr/art-module-gps-tel0094-25732.htm  
+
+Default baud rate: **9600**  
+
+# Purpose of This Project
+
+This example demonstrates :
+
+- use of the **UNO-Q hardware UART**
+- parsing NMEA sentences on the MCU
+- communication between MCU and Linux using **Bridge**
+- building a **Python REST API**
+- automatic JSON generation using **WebUI**
+- displaying GPS data in a **browser dashboard**
+- 
+It also illustrates how to design applications for the **hybrid architecture of the Arduino UNO-Q.**
+
+UNO-Q-GPS
+[image dashboard]
+
+# License
+MIT
+
+
