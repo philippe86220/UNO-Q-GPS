@@ -204,7 +204,7 @@ This example demonstrates :
 - 
 It also illustrates how to design applications for the **hybrid architecture of the Arduino UNO-Q.**
 
-## Screenshots
+## Screenshot
 ![Serveur](/doc//screenshot.jpg)
 
 # License
