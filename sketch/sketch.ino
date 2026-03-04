@@ -18,7 +18,7 @@ bool getSentence() {
   static byte i = 0;
   while (Serial.available()) {
     char c = Serial.read();
-    if (c == '\r')              continue;
+    if (c == '\r')  continue;
     if (c == '\n') {
       sentence[i] = '\0';
       i = 0;
