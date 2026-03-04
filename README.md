@@ -1,20 +1,20 @@
 # UNO-Q-GPS
-Application pour lire les Trames d'un capteur GNSS et les afficher sur une page HTML
+Application pour lire les Trames d'un capteur GNSS et les afficher sur une page HTML  
 Permet de mettre en évidence l'utilisation de l'UART matériel de l'UNO-Q
 
 ## 1. Principe de fonctionnement :
 
 - Une librairie permet d'extraire les champs necessaires au bon fonctionnement du programme
-- bridge transmet les champs de cette façon au MPU :
+- Bridge transmet les champs de cette façon au MPU :
 
 ```
-Bridge.call("update_gps", gps.latitude, gps.longitude, gps.jour, gps.mois, gps.annee+2000,(gps.heure) % 24, gps.minute, gps.seconde);
+Bridge.call("update_gps", gps.latitude, gps.longitude, gps.jour, gps.mois, gps.annee+2000,(gps.heure) % 24, gps.minute, gps.seconde, gps.numSat, gps.altitude);
 ```
 
 - Le coeur LINUX récupère ces champs : 
 
 ```
-def update_gps(lat,long, jour, mois, annee, heure, minute,seconde):
+def update_gps(lat,long, jour, mois, annee, heure, minute,seconde, numsat, altitude):
     with _lock:
         _state["lat"] = float(lat)
         _state["long"] = float(long)
@@ -24,6 +24,8 @@ def update_gps(lat,long, jour, mois, annee, heure, minute,seconde):
         _state["heure"] = int(heure)
         _state["minute"] = int(minute)
         _state["seconde"] = int(seconde)
+        _state["numsat"] = int(numsat)
+        _state["altitude"] = float(altitude)
 
 Bridge.provide("update_gps", update_gps)
 ```
@@ -33,12 +35,19 @@ Bridge.provide("update_gps", update_gps)
 ### 1. Le dictionnaire Python `payload`
 
 ```python
-payload = {
-    "now_utc": "2026-03-03T08:39:00Z",  # ← str Python
-    "lat": 46.123456,                   # ← float Python
-    "long": -0.12345,                   # ← float Python
-    "jour": 3, "mois": 3, "annee": 2026 # ← int Python
-}
+ payload = {
+            "now_utc": now_utc_iso(),
+            "lat": _state["lat"],
+            "long": _state["long"],
+            "jour": _state["jour"],
+            "mois": _state["mois"],
+            "annee": _state["annee"],
+            "heure": _state["heure"],
+            "minute": _state["minute"],
+            "seconde": _state["seconde"],
+            "numsat": _state["numsat"],
+            "altitude": _state["altitude"],
+        }
 ```
 
 `payload`= dictionnaire Python natif (types Python : `str`, `float`, `int`)
@@ -46,7 +55,7 @@ payload = {
 ### 2. Sérialisation automatique par WebUI
 
 ```
-web.expose_api("GET", "/api/state", api_state)  # ← MAGIC HERE
+web.expose_api("GET", "/api/state", api_state)  
 ```
 
 `WebUI` fait AUTOMATIQUEMENT :
@@ -76,7 +85,7 @@ Content-Type: application/json
 | Python | JSON    | JavaScript |
 | ------ | ------- | ---------- |
 | str    | "texte" | "texte"    |
-| float  | 46.123  | 46.123     |
+| float  | 36.123  | 36.123     |
 | int    | 3       | 3          |
 | None   | null    | null       |
 
@@ -84,15 +93,15 @@ Content-Type: application/json
 
 ```
 curl http://localhost/api/state
-# → {"now_utc":"2026-03-03T08:39:00Z","lat":46.123456,...}
+# → {"now_utc":"2026-03-03T08:39:00Z","lat":36.123456,...}
 ```
 
 WebUI gère TOUT : sérialisation JSON, headers HTTP, CORS, etc. ✨
 
 
-## Schéma visuel pour README
+### Schéma visuel pour README
 
-```mermaid
+```
 graph LR
     GPS[GPS NMEA] -->|update_gps| State[_state dict]
     Req[fetch("/api/state")] --> API[api_state()]
@@ -104,7 +113,7 @@ graph LR
 
 Avantage : Zéro code JSON manuel - WebUI s'occupe de tout ! ✅
 
-## 1. Librairie pour parser les TrameNMEA – Décodage minimaliste des trames GPS RMC / GGA / GSA
+## 2. Librairie pour parser les TrameNMEA – Décodage minimaliste des trames GPS RMC / GGA / GSA
 
 Librairie C++ pour cartes **Arduino AVR et UNO-Q** (ATmega328, Arduino UNO…) permettant  
 d’extraire rapidement les informations clés des phrases NMEA `$GPRMC`,
