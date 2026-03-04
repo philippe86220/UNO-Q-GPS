@@ -206,11 +206,11 @@ This example demonstrates :
 - 
 It also illustrates how to design applications for the **hybrid architecture of the Arduino UNO-Q.**
 
-## Screenshot
+# Screenshot
 ![Serveur](/doc//screenshot.jpg)
 
 
-## Acknowledgements
+# Acknowledgements
 
 Thanks to the open-source community and to AI-assisted tools that helped with documentation structure and language polishing.
 
