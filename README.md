@@ -8,7 +8,7 @@ This project highlights the **hybrid architecture of the UNO-Q**, combining:
 - a Linux MPU
 - a web interface
 
-It also provides an example of how to implement the use of the UNO-Q's hardware UART. 
+It also demonstrates how to use the UNO-Q hardware UART to interface with a GNSS receiver.
 
 ---
 
