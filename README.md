@@ -159,12 +159,12 @@ This project includes a lightweight C++ NMEA parser designed for :
 - Arduino AVR boards
 - Arduino UNO-Q
 - low memory environments
-- 
+  
 Supported sentences :
 - $GPRMC
 - $GPGGA
 - $GPGSA
-- 
+  
 The goal of this library is minimal decoding with no external dependencies, suitable for small  
 microcontrollers.
 
@@ -203,7 +203,7 @@ This example demonstrates :
 - building a **Python REST API**
 - automatic JSON generation using **WebUI**
 - displaying GPS data in a **browser dashboard**
-- 
+  
 It also illustrates how to design applications for the **hybrid architecture of the Arduino UNO-Q.**
 
 # Screenshot
