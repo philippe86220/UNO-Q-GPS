@@ -39,6 +39,48 @@ Web Browser Dashboard
 ```
 ---
 
+# System Architecture
+```
+        GNSS Receiver
+        (NMEA sentences)
+              │
+              │ UART
+              ▼
+      ┌─────────────────┐
+      │ MCU (UNO-Q)     │
+      │ Zephyr / Sketch │
+      │                 │
+      │ NMEA parser     │
+      │ (C++ library)   │
+      └─────────────────┘
+              │
+              │ Bridge RPC
+              ▼
+      ┌─────────────────┐
+      │ Linux MPU       │
+      │ Python app      │
+      │                 │
+      │ update_gps()    │
+      │ state dict      │
+      └─────────────────┘
+              │
+              │ WebUI API
+              ▼
+      ┌─────────────────┐
+      │ REST Endpoint   │
+      │ /api/state      │
+      └─────────────────┘
+              │
+              │ JSON
+              ▼
+      ┌─────────────────┐
+      │ Web Browser     │
+      │ JavaScript      │
+      │ fetch()         │
+      │ HTML dashboard  │
+      └─────────────────┘
+```
+
 # Data Flow
 
 ```
