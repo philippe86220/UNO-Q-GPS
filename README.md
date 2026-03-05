@@ -232,13 +232,14 @@ Extracted data include :
 
 # Hardware Connection
 
+```
 | GPS Module | UNO-Q |
 | ---------- | ----- |
 | TX         | RX    |
 | RX         | TX    |
 | VCC        | 3.3V  |
 | GND        | GND   |
-
+```
 Example GPS module used :
 
 https://www.gotronic.fr/art-module-gps-tel0094-25732.htm  
@@ -258,9 +259,9 @@ This example demonstrates :
   
 It also illustrates how to design applications for the **hybrid architecture of the Arduino UNO-Q.**
 
-# Screenshot
+# Screenshots
 ![Serveur](/doc//screenshot.jpg)
-
+![Serveur](/doc//montage.jpg)
 
 # Acknowledgements
 
