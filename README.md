@@ -205,10 +205,12 @@ Displayed data include :
 - altitude
 
 # NMEA Parsing Library
-This project includes a lightweight C++ NMEA parser designed for :
+
+This project includes a lightweight C++ NMEA parser designed for microcontroller environments such as:
+
 - Arduino AVR boards
 - Arduino UNO-Q
-- low memory environments
+- other resource-constrained embedded systems
   
 Supported sentences :
 - $GPRMC
