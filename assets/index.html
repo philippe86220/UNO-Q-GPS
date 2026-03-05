@@ -54,7 +54,7 @@ async function refresh() {
       (s.lat == null) ? "-" : (s.lat.toFixed(6) );
 
     document.getElementById("long").textContent =
-      (s.long == null) ? "-" : (s.long.toFixed(2) );
+      (s.long == null) ? "-" : (s.long.toFixed(6) );
 
      // Affichage jour/mois/année depuis les champs Python
     if (s.jour != null && s.mois != null && s.annee != null) {
