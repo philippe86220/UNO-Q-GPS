@@ -26,20 +26,21 @@ def now_utc_iso():
     return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def update_gps(lat,long, jour, mois, annee, heure, minute,seconde, numsat, altitude):
+    
     with _lock:
-        _state["lat"] = float(lat)
-        _state["long"] = float(long)
-        _state["jour"] = int(jour)
-        _state["mois"] = int(mois)
-        _state["annee"] = int(annee)
-        _state["heure"] = int(heure)
-        _state["minute"] = int(minute)
-        _state["seconde"] = int(seconde)
-        _state["numsat"] = int(numsat)
-        _state["altitude"] = float(altitude)
+        _state["lat"] = lat
+        _state["long"] = long
+        _state["jour"] = jour
+        _state["mois"] = mois
+        _state["annee"] = annee
+        _state["heure"] = heure
+        _state["minute"] = minute
+        _state["seconde"] = seconde
+        _state["numsat"] = numsat
+        _state["altitude"] = altitude
 
 Bridge.provide("update_gps", update_gps)
-#Bridge.provide("presence_mm", presence_mm)
+
 
 def api_state(_req=None):
     with _lock:
