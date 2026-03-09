@@ -97,9 +97,6 @@ This means:
 
 1.  the browser sends an HTTP request
 
-```{=html}
-<!-- -->
-```
     GET /api/state
 
 2.  the Python server executes
