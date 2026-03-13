@@ -18,7 +18,7 @@ The GNSS receiver sends NMEA sentences through the hardware UART of the UNO-Q.
 
 The MCU parses these sentences and extracts the useful fields.
 
-The extracted data are sent to the Linux system through **Bridge RPC calls**, where a Python application stores them and exposes them through a **REST API**.
+The extracted data are sent to the Linux system through **Bridge notifications**, where a Python application stores them and exposes them through a **REST API**.
 
 The HTML dashboard retrieves the data from this API and displays them in real time.
 
@@ -27,7 +27,7 @@ GNSS module
 ↓
 MCU (UART + NMEA parser)
 ↓
-Bridge RPC
+Bridge event notification
 ↓
 Linux MPU (Python)
 ↓
@@ -54,7 +54,7 @@ Web Browser Dashboard
       │ (C++ library)   │
       └─────────────────┘
               │
-              │ Bridge RPC
+              │ │ Bridge notification
               ▼
       ┌─────────────────┐
       │ Linux MPU       │
@@ -88,7 +88,7 @@ GPS NMEA sentences
         ↓
 MCU parser (C++ library)
         ↓
-Bridge.call()
+Bridge.notify()
         ↓
 Python update_gps()
         ↓
@@ -108,7 +108,7 @@ HTML dashboard update
 When a valid GPS fix is detected, the MCU sends the parsed values to the Linux side.
 
 ```
-Bridge.call(
+Bridge.notify(
   "update_gps",
   gps.latitude,
   gps.longitude,
